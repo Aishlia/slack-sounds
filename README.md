@@ -96,3 +96,35 @@ Eventually I wrote a quick-and-dirty Python script which receives a path to a `.
 
 ## Summary
 It was a fun journey into understanding how Slack stores and uses media files. The default media files within the .asar archive are probably there just in case there will be a connectivity issue in the first time Slack is loaded. The real deal are the Slack cache files which are being used heavily by Slack across many different functions, including notification sounds :)
+
+There is a Slack version (as of June 4 2021) for which the version is wrong; the script contains `bv1-10` but the url actually contains `bv1-13`. You can use https://addons.mozilla.org/en-US/firefox/addon/cache-viewer2/ to look up the actual URL.
+
+### Update (2024) - Notification vs Preview Sound Issue
+
+As of recent Slack versions, there's a distinction between:
+1. **Preview sounds** (what plays when you test in settings) - Uses the cached URL
+2. **Actual notification sounds** - Uses a local file in the app bundle
+
+The script has been updated to handle both cases:
+
+#### What Changed
+- Slack now uses a Service Worker cache that can intercept requests
+- Slack also includes notification sounds directly in `/Applications/Slack.app/Contents/Resources/`
+- The original script only modified the cache, which only affects the preview sound
+
+#### Solution
+1. Run `slack_change_sound_v3.py` which will:
+   - Clear the Service Worker cache
+   - Modify the regular cache files (for preview sounds)
+   - Provide instructions for the manual step
+
+2. Manually replace the resource file:
+   ```bash
+   # Make a backup first
+   sudo cp /Applications/Slack.app/Contents/Resources/hummus.mp3 /Applications/Slack.app/Contents/Resources/hummus.mp3.backup
+   
+   # Copy your custom sound
+   sudo cp sounds/icq_uh_oh.mp3 /Applications/Slack.app/Contents/Resources/hummus.mp3
+   ```
+
+Note: You'll need to repeat step 2 after each Slack update, as the app bundle gets replaced.
